@@ -1,43 +1,95 @@
-<script>
-  function getParam(name) {
-    return new URLSearchParams(window.location.search).get(name);
-  }
-
-  function formatCountdown(ms) {
-    const totalSeconds = Math.floor(ms / 1000);
-    const days = Math.floor(totalSeconds / 86400);
-    const hours = Math.floor((totalSeconds % 86400) / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-    return `${days}d ${hours}h ${minutes}m ${seconds}s`;
-  }
-
-  const timerEl = document.getElementById("timer");
-  const targetParam = getParam("target");
-  const targetTime = Number(targetParam);
-
-  if (!targetParam) {
-    timerEl.textContent = "No target date";
-    timerEl.className = "error";
-  } else if (isNaN(targetTime)) {
-    timerEl.textContent = "Invalid date";
-    timerEl.className = "error";
-  } else {
-    function updateTimer() {
-      const now = Date.now();
-      const distance = targetTime - now;
-
-      if (distance <= 0) {
-        timerEl.textContent = "EXPIRED";
-        timerEl.className = "expired";
-        clearInterval(intervalId);
-        return;
-      }
-
-      timerEl.textContent = formatCountdown(distance);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Countdown</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      font-family: Arial, sans-serif;
     }
 
-    updateTimer();
-    const intervalId = setInterval(updateTimer, 1000);
-  }
-</script>
+    .wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+    }
+
+    .timer {
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1.2;
+      color: #111;
+      word-break: break-word;
+    }
+
+    .expired {
+      font-size: 28px;
+      font-weight: 700;
+      color: #b00020;
+    }
+
+    .error {
+      font-size: 20px;
+      font-weight: 600;
+      color: #b00020;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div id="timer" class="timer">Loading...</div>
+  </div>
+
+  <script>
+    function getParam(name) {
+      return new URLSearchParams(window.location.search).get(name);
+    }
+
+    function formatCountdown(ms) {
+      const totalSeconds = Math.floor(ms / 1000);
+      const days = Math.floor(totalSeconds / 86400);
+      const hours = Math.floor((totalSeconds % 86400) / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      return `${days}d ${hours}h ${minutes}m ${seconds}s`;
+    }
+
+    const timerEl = document.getElementById("timer");
+    const targetParam = getParam("target");
+    const targetTime = Number(targetParam);
+
+    if (!targetParam) {
+      timerEl.textContent = "No target date";
+      timerEl.className = "error";
+    } else if (isNaN(targetTime)) {
+      timerEl.textContent = "Invalid date";
+      timerEl.className = "error";
+    } else {
+      let intervalId;
+
+      function updateTimer() {
+        const now = Date.now();
+        const distance = targetTime - now;
+
+        if (distance <= 0) {
+          timerEl.textContent = "EXPIRED";
+          timerEl.className = "expired";
+          if (intervalId) clearInterval(intervalId);
+          return;
+        }
+
+        timerEl.textContent = formatCountdown(distance);
+      }
+
+      updateTimer();
+      intervalId = setInterval(updateTimer, 1000);
+    }
+  </script>
+</body>
+</html>
