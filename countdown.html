@@ -69,11 +69,9 @@
 
     function formatCountdown(ms) {
       const totalSeconds = Math.floor(ms / 1000);
-      const days = Math.floor(totalSeconds / 86400);
-      const hours = Math.floor((totalSeconds % 86400) / 3600);
-      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const minutes = Math.floor(totalSeconds / 60);
       const seconds = totalSeconds % 60;
-      return `${days}d ${hours}h ${minutes}m ${seconds}s`;
+      return `${minutes}m ${String(seconds).padStart(2, "0")}s`;
     }
 
     function reportHeight() {
@@ -97,6 +95,7 @@
     const fontSize = getNumberParam("size", 20, 1, 500);
     const boxWidth = getNumberParam("width", 100, 1, 100);
     const boxHeight = getNumberParam("height", 100, 1, 100);
+    const label = getParam("label") || "Expires in:";
 
     timerEl.style.fontWeight = String(fontWeight);
     timerEl.style.fontSize = `${fontSize}px`;
@@ -104,7 +103,6 @@
     timerEl.style.height = `${boxHeight}vh`;
     timerEl.style.textAlign = textAlign;
 
-    // Horizontal placement of the timer box itself
     if (textAlign === "left") {
       wrapEl.style.justifyContent = "flex-start";
     } else if (textAlign === "right") {
@@ -136,7 +134,7 @@
           return;
         }
 
-        timerEl.textContent = formatCountdown(distance);
+        timerEl.textContent = `${label} ${formatCountdown(distance)}`;
         reportHeight();
       }
 
