@@ -12,43 +12,61 @@
       font-family: Arial, sans-serif;
     }
 
+    body {
+      overflow: hidden;
+    }
+
     .wrap {
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
-      text-align: center;
+      width: 100vw;
+      height: 100vh;
+      box-sizing: border-box;
     }
 
     .timer {
-      font-size: 28px;
-      font-weight: 700;
       line-height: 1.2;
       color: #111;
       word-break: break-word;
+      box-sizing: border-box;
     }
 
     .expired {
-      font-size: 28px;
-      font-weight: 700;
       color: #b00020;
     }
 
     .error {
-      font-size: 20px;
-      font-weight: 600;
       color: #b00020;
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
+  <div id="wrap" class="wrap">
     <div id="timer" class="timer">Loading...</div>
   </div>
 
   <script>
     function getParam(name) {
       return new URLSearchParams(window.location.search).get(name);
+    }
+
+    function clamp(num, min, max) {
+      return Math.min(Math.max(num, min), max);
+    }
+
+    function getNumberParam(name, fallback, min, max) {
+      const raw = getParam(name);
+      if (raw === null || raw === "") return fallback;
+      const num = Number(raw);
+      if (isNaN(num)) return fallback;
+      return clamp(num, min, max);
+    }
+
+    function getAlignParam() {
+      const raw = (getParam("align") || "center").toLowerCase();
+      const allowed = ["left", "right", "center", "justify"];
+      return allowed.includes(raw) ? raw : "center";
     }
 
     function formatCountdown(ms) {
@@ -60,16 +78,35 @@
       return `${days}d ${hours}h ${minutes}m ${seconds}s`;
     }
 
+    const wrapEl = document.getElementById("wrap");
     const timerEl = document.getElementById("timer");
+
     const targetParam = getParam("target");
     const targetTime = Number(targetParam);
 
+    const textAlign = getAlignParam();
+    const fontWeight = getNumberParam("weight", 600, 100, 900);
+    const fontSize = getNumberParam("size", 20, 1, 500);
+    const boxWidth = getNumberParam("width", 100, 1, 100);
+    const boxHeight = getNumberParam("height", 100, 1, 100);
+
+    timerEl.style.textAlign = textAlign;
+    timerEl.style.fontWeight = String(fontWeight);
+    timerEl.style.fontSize = `${fontSize}px`;
+    timerEl.style.width = `${boxWidth}vw`;
+    timerEl.style.height = `${boxHeight}vh`;
+    timerEl.style.display = "flex";
+    timerEl.style.alignItems = "center";
+    timerEl.style.justifyContent = "center";
+    timerEl.style.margin = "0";
+    timerEl.style.padding = "0";
+
     if (!targetParam) {
       timerEl.textContent = "No target date";
-      timerEl.className = "error";
+      timerEl.classList.add("error");
     } else if (isNaN(targetTime)) {
       timerEl.textContent = "Invalid date";
-      timerEl.className = "error";
+      timerEl.classList.add("error");
     } else {
       let intervalId;
 
@@ -79,7 +116,7 @@
 
         if (distance <= 0) {
           timerEl.textContent = "EXPIRED";
-          timerEl.className = "expired";
+          timerEl.classList.add("expired");
           if (intervalId) clearInterval(intervalId);
           return;
         }
