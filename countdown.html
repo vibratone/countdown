@@ -10,26 +10,24 @@
       padding: 0;
       background: transparent;
       font-family: Arial, sans-serif;
-    }
-
-    body {
       overflow: hidden;
     }
 
-    .wrap {
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    #wrap {
       width: 100vw;
       height: 100vh;
       box-sizing: border-box;
+      display: flex;
+      align-items: center;
     }
 
-    .timer {
+    #timer {
+      box-sizing: border-box;
       line-height: 1.2;
       color: #111;
       word-break: break-word;
-      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
     .expired {
@@ -42,8 +40,8 @@
   </style>
 </head>
 <body>
-  <div id="wrap" class="wrap">
-    <div id="timer" class="timer">Loading...</div>
+  <div id="wrap">
+    <div id="timer">Loading...</div>
   </div>
 
   <script>
@@ -78,6 +76,16 @@
       return `${days}d ${hours}h ${minutes}m ${seconds}s`;
     }
 
+    function reportHeight() {
+      const height = Math.ceil(
+        Math.max(
+          document.body.scrollHeight,
+          document.documentElement.scrollHeight
+        )
+      );
+      window.parent.postMessage({ iframeHeight: height }, "*");
+    }
+
     const wrapEl = document.getElementById("wrap");
     const timerEl = document.getElementById("timer");
 
@@ -90,23 +98,29 @@
     const boxWidth = getNumberParam("width", 100, 1, 100);
     const boxHeight = getNumberParam("height", 100, 1, 100);
 
-    timerEl.style.textAlign = textAlign;
     timerEl.style.fontWeight = String(fontWeight);
     timerEl.style.fontSize = `${fontSize}px`;
     timerEl.style.width = `${boxWidth}vw`;
     timerEl.style.height = `${boxHeight}vh`;
-    timerEl.style.display = "flex";
-    timerEl.style.alignItems = "center";
-    timerEl.style.justifyContent = "center";
-    timerEl.style.margin = "0";
-    timerEl.style.padding = "0";
+    timerEl.style.textAlign = textAlign;
+
+    // Horizontal placement of the timer box itself
+    if (textAlign === "left") {
+      wrapEl.style.justifyContent = "flex-start";
+    } else if (textAlign === "right") {
+      wrapEl.style.justifyContent = "flex-end";
+    } else {
+      wrapEl.style.justifyContent = "center";
+    }
 
     if (!targetParam) {
       timerEl.textContent = "No target date";
       timerEl.classList.add("error");
+      reportHeight();
     } else if (isNaN(targetTime)) {
       timerEl.textContent = "Invalid date";
       timerEl.classList.add("error");
+      reportHeight();
     } else {
       let intervalId;
 
@@ -118,15 +132,24 @@
           timerEl.textContent = "EXPIRED";
           timerEl.classList.add("expired");
           if (intervalId) clearInterval(intervalId);
+          reportHeight();
           return;
         }
 
         timerEl.textContent = formatCountdown(distance);
+        reportHeight();
       }
 
       updateTimer();
       intervalId = setInterval(updateTimer, 1000);
     }
+
+    window.addEventListener("load", reportHeight);
+    window.addEventListener("resize", reportHeight);
+
+    const ro = new ResizeObserver(reportHeight);
+    ro.observe(document.body);
+    ro.observe(document.documentElement);
   </script>
 </body>
 </html>
